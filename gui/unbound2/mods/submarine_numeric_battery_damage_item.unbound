@@ -1,0 +1,53 @@
+(def element ShipMarkerBatteryDamageItem (_entityId:number) layout=true
+	(scope
+		(var markerEntity:gfx = "$datahub.getEntity(_entityId)")
+		(var entityId:number = "markerEntity ? markerEntity.id : 0")
+
+		(macro GET_MARKER_ENTITY_COMPONENT 'battery')
+		(var currentRate:number = "batteryComponent ? batteryComponent.currentRate : 0" (event "batteryComponent.evCurrentRateChanged"))
+		(var batteryState:number = "batteryComponent ? batteryComponent.batteryState : 0" (event "batteryComponent.evBatteryStateChanged"))
+		(var burnRate:number = "batteryComponent ? batteryComponent.burnRate : 0" (event "batteryComponent.evBurnRateChanged"))
+		(var baseSpendRate:number = "batteryComponent ? batteryComponent.baseSpendRate : 0")
+		(var baseRegenRate:number = "batteryComponent ? batteryComponent.baseRegenRate : 0")
+
+		(var actualRate:number = 
+			"
+			batteryState == SC.Battle.BATTERY_STATE.CHARGING ? -currentRate:
+			batteryState == SC.Battle.BATTERY_STATE.SPENDING ? abs(baseSpendRate):
+			batteryState == SC.Battle.BATTERY_STATE.BURNING ? abs(baseSpendRate) + burnRate:
+			0
+			"
+			(event "batteryComponent.evBatteryStateChanged")
+		)
+	)
+	(block
+		(style
+			(flow = "Flow.HORIZONTAL") (align = "middle")
+			(pivotX = 50%)
+			(pivotY = 50%)
+		)
+		(block
+			(style
+				(width = 19) (height = 19)
+				(backgroundImage = "'url:../battle_hud/crosshair/indicators/crosshair_indicator_energy_white.png'")
+			)
+		)
+		(block
+			(tf
+				(class $WorldMarkerTextItem)
+				(class $TextDefaultNM)
+				(style
+					(fontSize = 12)
+					(bind textColor "
+						batteryState == SC.Battle.BATTERY_STATE.BURNING ? SC.Ui_styles.SERVICE_COLORS.ORANGE:
+						batteryState == SC.Battle.BATTERY_STATE.CHARGING ? SC.Ui_styles.SERVICE_COLORS.GREEN:
+						SC.Ui_styles.SERVICE_COLORS.WHITE
+						"
+					)
+					(textAlign = "right")
+				)
+				(bind text "'x'+ formatFloatingPoint(actualRate, 2)")
+			)
+		)
+	)
+)

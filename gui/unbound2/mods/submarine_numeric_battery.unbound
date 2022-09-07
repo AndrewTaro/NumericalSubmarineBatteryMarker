@@ -1,0 +1,73 @@
+(def element ShipMarkerBatteryBarItem (_entityId:number, _isLarge:bool) layout=true
+	(scope
+		(event evShow)
+		(var markerEntity:gfx = "$datahub.getEntity(_entityId)")
+		(var entityId:number = "markerEntity ? markerEntity.id : 0")
+
+		(macro GET_MARKER_ENTITY_COMPONENT 'battery')
+		(var batteryValue:number = "batteryComponent ? batteryComponent.value : 0" (event "batteryComponent.evValueChanged"))
+		(var batteryMax:number = "batteryComponent ? batteryComponent.maxCapacity : 0" (event "batteryComponent.evCurrentRateChanged"))
+		(var batteryState:number = "batteryComponent ? batteryComponent.batteryState : SC.Battle.BATTERY_STATE.IDLE" (event "batteryComponent.evBatteryStateChanged"))
+		(var isBatteryFrozen:bool = "batteryState == SC.Battle.BATTERY_STATE.FROZEN")
+		(var isBatteryBurning:bool = "batteryState == SC.Battle.BATTERY_STATE.BURNING")
+
+		(var batteryRatio:number = "batteryMax ? batteryValue / batteryMax : -1")
+
+		(var sizes:array = "BATTERY_BAR_SIZE[_isLarge ? 1 : 0]")
+
+		(var fillAlpha:number = "isBatteryFrozen ? 1.5 : 0.8" watch=false)
+		(controller $Animation
+			(bindcall play	duration = "1" repeatCount=-1 action="kill"
+							keyframes="[
+								{frame:0, to:{fillAlpha:0.8}}, 
+								{frame:30, to:{fillAlpha:1.5}, easing:Easing.quad_out},
+								{frame:40, to:{fillAlpha:1.5}},
+								{frame:60, to:{fillAlpha:0.8}}
+							]"
+							(event "evShow")
+							(bind enabled "isBatteryFrozen")
+			)
+			(bindcall play duration=0.15 to="{ fillAlpha:0.8 }" action="kill" (bind enabled "!(isBatteryFrozen)"))
+		)
+	)
+	(dispatch evShow on=addedToStage)
+
+	(class $WorldMarkerItemMargins)
+	(style
+		(bind width "sizes[0]")
+		(bind height "sizes[1]")
+
+		(backgroundImage = "'url:../battle_hud/markers/bar/bar_bg.png'")
+		(backgroundSize = "fill")
+		(scale9grid = "rect(1, 1, 44, 2)")
+		(padding = 1)
+	)
+
+	
+	(block
+		(class $Fullsize)
+		(scaleX = "batteryRatio")
+		(bind alpha "fillAlpha")
+		(style
+			(bind backgroundColor "0xFFFFFFFF")
+			(backgroundSize = "fill")
+		)
+
+		(controller $Animation
+			(bindcall play	duration = "HEALTH_BAR_TWEEN_DURATION"
+							action="kill"
+							watch=false
+							to = "{ scaleX: batteryRatio }"
+							(event "batteryComponent.evValueChanged")
+			)
+		)
+	)
+	(block
+		(class $Fullsize)
+		(scaleX=1.0)
+		(controller $Instance renderer='SimpleMarkerTextItem'
+			(bind enabled "batteryValue != ''")
+			(args "countdownFormat(batteryValue, 0, true)")
+		)
+	)
+)
