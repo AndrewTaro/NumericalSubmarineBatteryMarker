@@ -1,8 +1,5 @@
-(def element ShipMarkerBatteryDamageItem (_entityId:number) layout=true
+(def element ShipMarkerBatteryDamageItem (_markerEntity:gfx, _isLarge:bool) layout=true
 	(scope
-		(var markerEntity:gfx = "$datahub.getEntity(_entityId)")
-		(var entityId:number = "markerEntity ? markerEntity.id : 0")
-
 		(macro GET_MARKER_ENTITY_COMPONENT 'battery')
 		(var currentRate:number = "batteryComponent ? batteryComponent.currentRate : 0" (event "batteryComponent.evCurrentRateChanged"))
 		(var batteryState:number = "batteryComponent ? batteryComponent.batteryState : 0" (event "batteryComponent.evBatteryStateChanged"))

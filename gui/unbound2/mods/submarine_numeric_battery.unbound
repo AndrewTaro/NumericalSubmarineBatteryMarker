@@ -1,9 +1,6 @@
-(def element ShipMarkerBatteryBarItem (_entityId:number, _isLarge:bool) layout=true
+(def element ShipMarkerBatteryBarItem (_markerEntity:gfx, _isLarge:bool) layout=true
 	(scope
 		(event evShow)
-		(var markerEntity:gfx = "$datahub.getEntity(_entityId)")
-		(var entityId:number = "markerEntity ? markerEntity.id : 0")
-
 		(macro GET_MARKER_ENTITY_COMPONENT 'battery')
 		(var batteryValue:number = "batteryComponent ? batteryComponent.value : 0" (event "batteryComponent.evValueChanged"))
 		(var batteryMax:number = "batteryComponent ? batteryComponent.maxCapacity : 0" (event "batteryComponent.evCurrentRateChanged"))
@@ -19,10 +16,10 @@
 		(controller $Animation
 			(bindcall play	duration = "1" repeatCount=-1 action="kill"
 							keyframes="[
-								{frame:0, to:{fillAlpha:0.8}}, 
-								{frame:30, to:{fillAlpha:1.5}, easing:Easing.quad_out},
-								{frame:40, to:{fillAlpha:1.5}},
-								{frame:60, to:{fillAlpha:0.8}}
+								{percent:0, to:{fillAlpha:0.8}}, 
+								{percent:30, to:{fillAlpha:1.5}, easing:Easing.quad_out},
+								{percent:40, to:{fillAlpha:1.5}},
+								{percent:60, to:{fillAlpha:0.8}}
 							]"
 							(event "evShow")
 							(bind enabled "isBatteryFrozen")
@@ -62,6 +59,7 @@
 			)
 		)
 	)
+	#modded
 	(block
 		(class $Fullsize)
 		(scaleX=1.0)
@@ -70,4 +68,5 @@
 			(args "countdownFormat(batteryValue, 0, true)")
 		)
 	)
+	#
 )
