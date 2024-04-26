@@ -7,14 +7,14 @@
 		(var baseSpendRate:number = "batteryComponent ? batteryComponent.baseSpendRate : 0")
 		(var baseRegenRate:number = "batteryComponent ? batteryComponent.baseRegenRate : 0")
 
+		(var isCharging:bool = "batteryState == SC.Battle.BATTERY_STATE.CHARGING")
+		(var isBurning:bool = "isIn(batteryState, SC.Battle.BATTERY_STATE.SPENDING_STATES)")
+
 		(var actualRate:number = 
 			"
-			batteryState == SC.Battle.BATTERY_STATE.CHARGING ? -currentRate:
-			batteryState == SC.Battle.BATTERY_STATE.SPENDING ? abs(baseSpendRate):
-			batteryState == SC.Battle.BATTERY_STATE.BURNING ? abs(baseSpendRate) + burnRate:
-			0
-			"
-			(event "batteryComponent.evBatteryStateChanged")
+			isCharging ? -currentRate:
+			isBurning ? abs(baseSpendRate) + burnRate:
+			0"
 		)
 	)
 	(block
