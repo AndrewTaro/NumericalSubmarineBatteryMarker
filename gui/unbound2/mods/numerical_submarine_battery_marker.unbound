@@ -3,7 +3,7 @@
 		(event evShow)
 		(macro GET_MARKER_ENTITY_COMPONENT 'battery')
 		(var batteryValue:number = "batteryComponent ? batteryComponent.value : 0" (event "batteryComponent.evValueChanged"))
-		(var batteryMax:number = "batteryComponent ? batteryComponent.maxCapacity : 0" (event "batteryComponent.evCurrentRateChanged"))
+		(var batteryMax:number = "batteryComponent ? batteryComponent.maxCapacity : 0" (event "batteryComponent.evMaxCapacityChanged"))
 		(var batteryState:number = "batteryComponent ? batteryComponent.batteryState : SC.Battle.BATTERY_STATE.IDLE" (event "batteryComponent.evBatteryStateChanged"))
 		(var isBatteryFrozen:bool = "batteryState == SC.Battle.BATTERY_STATE.FROZEN")
 		(var isBatteryBurning:bool = "batteryState == SC.Battle.BATTERY_STATE.BURNING")
@@ -36,7 +36,7 @@
 
 		(backgroundImage = "'url:../battle_hud/markers/bar/bar_bg.png'")
 		(backgroundSize = "fill")
-		(scale9grid = "rect(1, 1, 44, 2)")
+		(scale9grid = [1, 1, 44, 2])
 		(padding = 1)
 	)
 
