@@ -26,6 +26,40 @@
 			)
 			(bindcall play duration=0.15 to="{ fillAlpha:0.8 }" action="kill" (bind enabled "!(isBatteryFrozen)"))
 		)
+
+		# Mod
+		(var batteryValueText:str = "countdownFormat(batteryValue, 0, true)")
+
+		(var currentRate:number = "batteryComponent ? batteryComponent.currentRate : 0" (event "batteryComponent.evCurrentRateChanged"))
+		(var burnRate:number = "batteryComponent ? batteryComponent.burnRate : 0" (event "batteryComponent.evBurnRateChanged"))
+		(var baseSpendRate:number = "batteryComponent ? batteryComponent.baseSpendRate : 0")
+		(var baseRegenRate:number = "batteryComponent ? batteryComponent.baseRegenRate : 0")
+
+		(var isIdle:bool = "batteryState == SC.Battle.BATTERY_STATE.IDLE")
+		(var isCharging:bool = "batteryState == SC.Battle.BATTERY_STATE.CHARGING")
+		(var isFrozen:bool = "batteryState == SC.Battle.BATTERY_STATE.FROZEN")
+		(var isBurning:bool = "isIn(batteryState, SC.Battle.BATTERY_STATE.SPENDING_STATES)")
+
+		(var actualRate:number = "
+			isCharging	? currentRate :
+			isFrozen	? 0 :
+			isBurning	? abs(baseSpendRate) + burnRate
+						: 0
+		")
+
+		(var prefix:str = "
+			isCharging	? '+' : 
+			isFrozen	? ''
+						: '-'
+		")
+		(var reminingTimeText:str = "prefix + formatFloatingPoint(actualRate, 1)")
+		(var textColor:number = "
+			isCharging	? SC.Ui_styles.SERVICE_COLORS.GREEN :
+			isFrozen	? SC.Ui_styles.SERVICE_COLORS.LIGHT_BLUE :
+			isBurning	? SC.Ui_styles.SERVICE_COLORS.ORANGE
+						: SC.Ui_styles.SERVICE_COLORS.WHITE
+		")
+		#
 	)
 	(dispatch evShow on=addedToStage)
 
@@ -59,14 +93,65 @@
 			)
 		)
 	)
-	#modded
-	(block
-		(class $Fullsize)
-		(scaleX=1.0)
-		(controller $Instance renderer='SimpleMarkerTextItem'
-			(bind enabled "batteryValue != ''")
-			(args "countdownFormat(batteryValue, 0, true)")
+	# Mod
+	(element SimpleMarkerTextItem "batteryValueText"
+		(style
+			(position = "absolute")
+			(left = 0)
+			(top = 100%)
+		)
+	)
+	# If I move this to a separate element, the block somehow fails to aling itself to the middle.
+	# No clue how the hell that behavior occurs.
+	(hblock
+		(visible = "!isIdle")
+		(style
+			(position = "absolute")
+			(left = 100%)
+			(vcenter = 50%)
+			(alpha = "isIdle ? 0 : 1")
+			(visualOffsetY = "isIdle ? -10px : 0px")
+			(align = "middle")
+		)
+
+		(controller $Animation
+			(bindcall play
+				duration = 0.15
+				to       = "{visible: true, alpha: 1, visualOffsetY: 0px}"
+				action	 = "killAll"
+				watch	 = false
+				(bind enabled "!isIdle")
+				(bind trigger "isIdle")
+			)
+			(bindcall play
+				duration = 0.15
+				to       = "{visible: false, alpha: 0, visualOffsetY: -10px}"
+				action	 = "killAll"
+				watch	 = false
+				(bind enabled "isIdle")
+				(bind trigger "isIdle")
+			)
+		)
+		# Icon
+		(block
+			(style
+				(width = 19) (height = 19)
+				(backgroundImage = "'url:../battle_hud/crosshair/indicators/crosshair_indicator_energy_white.png'")
+			)
+		)
+		# Rate
+		(block
+			(tf
+				(class $WorldMarkerTextItem)
+				(style
+					(bind textColor "textColor")
+					(textAlign = "right")
+				)
+				(bind text "reminingTimeText")
+			)
 		)
 	)
 	#
 )
+
+(def element ShipMarkerBatteryDamageItem (_markerEntity:gfx, _isLarge:bool) layout=true)
